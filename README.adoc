@@ -1,0 +1,19 @@
+= Engine1
+My first attempt at making a non-serious game engine +
+If there are any issues with building/running please let me know
+
+== Support
+Currently I have only tested linux, so I got no clue about windows :) +
+When I have the time to fix up my window dev environment I will test it out to ensure it works.
+
+== Building
+Ensure you have glfw installed system wide
+
+. ``premake5 gmake2``
+. ``make``
+
+== TODO:
+* [ ] Fix renderer to make it work better, currently very hacky (even for just a triangle)
+** Maybe create some sort of render object ecs?
+* [ ] Create a root engine struct
+* [ ] Do some compile time read hack on the shaders so the files actually matter
