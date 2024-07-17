@@ -10,12 +10,16 @@ typedef struct E1Window {
     GLFWwindow* glfw_window;
 
     void (*render_callback)(const struct E1Window* const, const E1RenderContext* const);
-    void (*input_callback)(const struct E1Window* const);
+    // Window, Key, Action, Modifiers
+    void (*input_callback)(const struct E1Window* const, int32_t, int32_t, int32_t);
 } E1Window;
 
 E1Window e1window_create(int16_t width, int16_t height, const char* const title);
 void e1window_destroy(E1Window* window);
-void e1window_start_render_loop(const E1Window* const window, const E1RenderContext* const render_ctx);
+void e1window_start_render_loop(
+    const E1Window* const window,
+    const E1RenderContext* const render_ctx
+);
 
 bool e1window_key_pressed(const E1Window* const window, int32_t key);
 void e1window_should_close(const E1Window* const window);

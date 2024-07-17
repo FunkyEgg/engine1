@@ -13,7 +13,8 @@ Ensure you have glfw installed system wide
 . ``make``
 
 == TODO:
-* [ ] Fix renderer to make it work better, currently very hacky (even for just a triangle)
+* [ ] Fix renderer to make it work better, currently very hacky (even for just a square?)
 ** Maybe create some sort of render object ecs?
 * [ ] Create a root engine struct
 * [ ] Do some compile time read hack on the shaders so the files actually matter
+* [ ] Figure out if half my fixme "Hacks" can be fixed, or if I go to the classic programming moto

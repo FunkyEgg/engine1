@@ -2,9 +2,18 @@
 
 // TODO: Bundle window + render_ctx + ... into a engine struct to store and pass things around nicely
 
-void input_callback(const E1Window* const window) {
-    if (e1window_key_pressed(window, GLFW_KEY_ESCAPE)) {
+// TODO: Fix input callback, make it nicer and easier
+void input_callback(
+    const E1Window* const window,
+    int32_t key,
+    int32_t action,
+    int32_t modifiers
+) {
+    if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
         e1window_should_close(window);
+    }
+    if (key == GLFW_KEY_W && action == GLFW_PRESS) {
+        hack_wireframe();
     }
 }
 void render_callback(

@@ -5,8 +5,27 @@
 #include <stdio.h>
 #include <stdbool.h>
 
-static void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
+static void framebuffer_size_callback(
+    GLFWwindow* _window,
+    int width, int height
+) {
     glViewport(0, 0, width, height);
+}
+
+static void key_callback(
+    GLFWwindow* glfw_window,
+    int key,
+    int _scancode,
+    int action,
+    int modifiers
+) {
+    E1Window* window = glfwGetWindowUserPointer(glfw_window);
+    if (window == NULL) {
+        fprintf(stderr, "GLFW_windowUserPointer isn't set");
+        return;
+    }
+
+    window->input_callback(window, key, action, modifiers);
 }
 
 E1Window e1window_create(
@@ -38,6 +57,7 @@ E1Window e1window_create(
 
     glViewport(0, 0, width, height);
     glfwSetFramebufferSizeCallback(window.glfw_window, framebuffer_size_callback);
+    glfwSetKeyCallback(window.glfw_window, key_callback);
 
     return window;
 }
@@ -51,8 +71,11 @@ void e1window_start_render_loop(
     const E1Window* const window,
     const E1RenderContext* const render_ctx
 ) {
+    // FIXME: This feels very hacky, however it should work as no input should of been polled yet
+    // In future this should point the the main egine struct if still using this hack
+    glfwSetWindowUserPointer(window->glfw_window, (void*)window);
+
     while (!glfwWindowShouldClose(window->glfw_window)) {
-        window->input_callback(window);
         window->render_callback(window, render_ctx);
 
         glfwSwapBuffers(window->glfw_window);
