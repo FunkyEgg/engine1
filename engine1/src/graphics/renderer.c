@@ -17,17 +17,26 @@ const char* frag_shader_source = "#version 330 core\n"
     "frag_color = vec4(1.0f, 0.5f, 0.2f, 1.0f);\n"
     "}\0";
 
-void render_temp(const E1RenderObject* const render_object) {
+void e1renderobject_render(const E1RenderObject* const render_object) {
+    if (render_object == NULL) { return; }
+
     glUseProgram(render_object->shader_program);
     glBindVertexArray(render_object->VAO);
 
     if (render_object->EBO == 0) {
-        // FIXME Assumed length
         glDrawArrays(GL_TRIANGLES, 0, render_object->count);
     }
     else {
-        // FIXME: Assumed length, add it to redner context please
         glDrawElements(GL_TRIANGLES, render_object->count, GL_UNSIGNED_INT, 0);
+    }
+}
+
+void e1renderobject_render_vector(const Vector* const render_objects) {
+    if (render_objects == NULL || render_objects->elems == NULL) { return; }
+
+    for (uint32_t i = 0; i < render_objects->size; i++) {
+        E1RenderObject* render_object = render_objects->elems[i];
+        e1renderobject_render(render_object);
     }
 }
 

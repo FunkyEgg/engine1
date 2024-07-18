@@ -69,14 +69,14 @@ void e1window_destroy(E1Window* window) {
 
 void e1window_start_render_loop(
     const E1Window* const window,
-    const E1RenderObject* const render_ctx
+    const Vector* const render_objects
 ) {
     // FIXME: This feels very hacky, however it should work as no input should of been polled yet
     // In future this should point the the main egine struct if still using this hack
     glfwSetWindowUserPointer(window->glfw_window, (void*)window);
 
     while (!glfwWindowShouldClose(window->glfw_window)) {
-        window->render_callback(window, render_ctx);
+        window->render_callback(window, render_objects);
 
         glfwSwapBuffers(window->glfw_window);
         glfwPollEvents();

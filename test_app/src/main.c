@@ -19,53 +19,41 @@ void input_callback(
 }
 void render_callback(
     const E1Window* const window,
-    const E1RenderObject* const render_ctx
+    const Vector* const render_objects
 ) {
     e1window_set_bg_color( (Vec4(float32_t)){ 0.1f, 0.2f, 0.2f, 1.0f } );
 
-    render_temp(render_ctx);
+    e1renderobject_render_vector(render_objects);
 }
 
 int main(void) {
     E1Window window = e1window_create(1280, 720, "Hello World");
+    Vector render_objects = vector_create_empty(sizeof(E1RenderObject));
 
-    /*
-    E1RenderObject render_ctx = e1renderobject_create(
+    E1RenderObject render_obj_1 = e1renderobject_create(
         (float32_t[]){
-            0.5f, 0.5f, 0.0f,
-            0.5f, -0.5f, 0.0f,
-            -0.5f, -0.5f, 0.0f,
-            -0.5f, 0.5f, 0.0f,
-        },
-        (uint32_t[]){
-            0, 1, 3,
-            1, 2, 3
-        },
-        4*3,
-        2*3
-    ); */
-
-    /*E1RenderObject render_ctx = e1renderobject_create(
-        (float32_t[]){
-            0.5f, 0.5f, 0.0f,
-            0.5f, -0.5f, 0.0f,
-            -0.5f, -0.5f, 0.0f
+            -0.25f, -0.25f, 0.0f,
+            -0.25f, -0.75f, 0.0f,
+            -0.75f, -0.75f, 0.0f
         },
         NULL,
         3*3,
         0
-    );*/
-
-    E1RenderObject render_ctx = e1renderobject_create_triangle(
-        (Vec3(float32_t)){ 0.5f, 0.5f, 0.0f },
-        (Vec3(float32_t)){ 0.5f, -0.5f, 0.0f },
-        (Vec3(float32_t)){ -0.5f, 0.5f, 0.0f }
     );
+
+    E1RenderObject render_obj_2 = e1renderobject_create_triangle(
+        (Vec3(float32_t)){ 0.25f, 0.25f, 0.0f },
+        (Vec3(float32_t)){ 0.25f, 0.75f, 0.0f },
+        (Vec3(float32_t)){ 0.75f, 0.75f, 0.0f }
+    );
+
+    vector_push_back(&render_objects, &render_obj_1);
+    vector_push_back(&render_objects, &render_obj_2);
 
     window.input_callback = input_callback;
     window.render_callback = render_callback;
 
-    e1window_start_render_loop(&window, &render_ctx);
+    e1window_start_render_loop(&window, &render_objects);
 
     e1window_destroy(&window);
     return 0;

@@ -2,6 +2,7 @@
 #define ENGINE1_GRAPHICS_RENDERER_H
 
 #include <engine1/math/math.h>
+#include <engine1/core/vector.h>
 #include <stdint.h>
 
 typedef struct E1RenderObject {
@@ -12,12 +13,6 @@ typedef struct E1RenderObject {
     // Could be the ebo length or verts length / 3
     uint32_t count;
 } E1RenderObject;
-
-// TODO: Migrate to vecs, when I implement them
-typedef struct E1Renderer {
-    uint8_t render_object_count;
-    E1RenderObject* render_objects;
-} E1Renderer;
 
 E1RenderObject e1renderobject_create(
     float32_t vertices[],
@@ -30,7 +25,8 @@ E1RenderObject e1renderobject_create_triangle(
     Vec3(float32_t) p2,
     Vec3(float32_t) p3
 );
-void render_temp(const E1RenderObject* const render_object);
+void e1renderobject_render(const E1RenderObject* const render_object);
+void e1renderobject_render_vector(const Vector* const render_objects);
 
 void hack_wireframe();
 
