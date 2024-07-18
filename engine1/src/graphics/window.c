@@ -69,7 +69,7 @@ void e1window_destroy(E1Window* window) {
 
 void e1window_start_render_loop(
     const E1Window* const window,
-    const E1RenderContext* const render_ctx
+    const E1RenderObject* const render_ctx
 ) {
     // FIXME: This feels very hacky, however it should work as no input should of been polled yet
     // In future this should point the the main egine struct if still using this hack

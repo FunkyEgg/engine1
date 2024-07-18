@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 
+// FIXME: Pre compile step for shaders?
 const char* vertex_shader_source = "#version 330 core\n"
     "layout (location = 0) in vec3 aPos;\n"
     "void main()\n"
@@ -16,13 +17,18 @@ const char* frag_shader_source = "#version 330 core\n"
     "frag_color = vec4(1.0f, 0.5f, 0.2f, 1.0f);\n"
     "}\0";
 
-void render_temp(const E1RenderContext* const render_contex) {
-    glUseProgram(render_contex->shader_program);
+void render_temp(const E1RenderObject* const render_object) {
+    glUseProgram(render_object->shader_program);
+    glBindVertexArray(render_object->VAO);
 
-    glBindVertexArray(render_contex->VAO);
-
-    // glDrawArrays(GL_TRIANGLES, 0, 3);
-    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_BYTE, 0);
+    if (render_object->EBO == 0) {
+        // FIXME Assumed length
+        glDrawArrays(GL_TRIANGLES, 0, render_object->count);
+    }
+    else {
+        // FIXME: Assumed length, add it to redner context please
+        glDrawElements(GL_TRIANGLES, render_object->count, GL_UNSIGNED_INT, 0);
+    }
 }
 
 // FIXME: This is very hacky, do it better
@@ -39,17 +45,35 @@ void hack_wireframe() {
     }
 }
 
-E1RenderContext e1rendercontext_create() {
-    float vertices[] = {
-         0.5f,  0.5f, 0.0f, // Top right
-         0.5f, -0.5f, 0.0f, // Bottom right
-        -0.5f, -0.5f, 0.0f, // Bottom left
-        -0.5f,  0.5f, 0.0f  // Top Left
-    };
-    uint8_t indices[] = {
-        0, 1, 3,
-        1, 2, 3
-    };
+E1RenderObject e1renderobject_create_triangle(
+    Vec3(float32_t) p1,
+    Vec3(float32_t) p2,
+    Vec3(float32_t) p3
+) {
+    return e1renderobject_create(
+        (float32_t[]){
+            p1.x, p1.y, p1.z,
+            p2.x, p2.y, p2.z,
+            p3.x, p3.y, p3.z
+        },
+        NULL,
+        9,
+        0
+    );
+}
+
+E1RenderObject e1renderobject_create(
+    float32_t vertices[],
+    uint32_t indices[],
+    uint32_t vertices_length,
+    uint32_t indices_length
+) {
+    E1RenderObject render_object = { 0, 0, 0, 0, 0 };
+
+    if (vertices == NULL || vertices_length < 9) {
+        fprintf(stderr, "Passed in NULL vertices, vertices_length = %u\n", vertices_length);
+        return render_object;
+    }
 
     uint32_t vertex_shader;
     {
@@ -66,7 +90,7 @@ E1RenderContext e1rendercontext_create() {
             fprintf(stderr, "Vertex shader failed to compile:\n%s\n", log);
 
             glDeleteShader(vertex_shader);
-            return (E1RenderContext){ 0, 0, 0 };
+            return render_object;
         }
     }
 
@@ -85,7 +109,7 @@ E1RenderContext e1rendercontext_create() {
 
             glDeleteShader(vertex_shader);
             glDeleteShader(frag_shader);
-            return (E1RenderContext){ 0, 0, 0 };
+            return render_object;
         }
     }
 
@@ -105,15 +129,17 @@ E1RenderContext e1rendercontext_create() {
 
             glDeleteShader(vertex_shader);
             glDeleteShader(frag_shader);
-            return (E1RenderContext){ 0, 0, 0 };
+            return render_object;
         }
 
         glDeleteShader(vertex_shader);
         glDeleteShader(frag_shader);
     }
 
-    uint32_t VBO, VAO, EBO;
-    {
+    uint32_t VBO, VAO, EBO, count;
+    if (indices != NULL) {
+        count = indices_length;
+
         glGenVertexArrays(1, &VAO);
         glGenBuffers(1, &VBO);
         glGenBuffers(1, &EBO); // DO NOT UNBIND THE EBO UNTIL DONE WITH VAO
@@ -121,10 +147,29 @@ E1RenderContext e1rendercontext_create() {
         glBindVertexArray(VAO); // Bind VAO Then VBO Then EBO Then extras
 
         glBindBuffer(GL_ARRAY_BUFFER, VBO);
-        glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(float32_t) * vertices_length, vertices, GL_STATIC_DRAW);
 
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(uint32_t) * indices_length, indices, GL_STATIC_DRAW);
+
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+        glEnableVertexAttribArray(0);
+
+        // The call to glVertexAttribPointer registers the vbo as the current one, so unbinding is safe
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+        glBindVertexArray(0); // Unbind VAO to reduce bugs
+    }
+    else {
+        EBO = 0;
+        count = vertices_length / 3;
+
+        glGenVertexArrays(1, &VAO);
+        glGenBuffers(1, &VBO);
+
+        glBindVertexArray(VAO); // Bind VAO Then VBO Then extras
+
+        glBindBuffer(GL_ARRAY_BUFFER, VBO);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(float32_t) * vertices_length, vertices, GL_STATIC_DRAW);
 
         glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
         glEnableVertexAttribArray(0);
@@ -134,10 +179,11 @@ E1RenderContext e1rendercontext_create() {
         glBindVertexArray(0); // Unbind VAO to reduce bugs
     }
 
-    return (E1RenderContext){
+    render_object = (E1RenderObject){
         .shader_program = shader_program,
-        .VAO = VAO,
-        .VBO = VBO,
-        .EBO = EBO
+        .VAO = VAO, .VBO = VBO, .EBO = EBO,
+        .count = count
     };
+
+    return render_object;
 }

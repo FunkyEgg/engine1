@@ -3,6 +3,7 @@
 // TODO: Bundle window + render_ctx + ... into a engine struct to store and pass things around nicely
 
 // TODO: Fix input callback, make it nicer and easier
+// This could be done by making a key struct, with nice and easy methods
 void input_callback(
     const E1Window* const window,
     int32_t key,
@@ -18,7 +19,7 @@ void input_callback(
 }
 void render_callback(
     const E1Window* const window,
-    const E1RenderContext* const render_ctx
+    const E1RenderObject* const render_ctx
 ) {
     e1window_set_bg_color( (Vec4(float32_t)){ 0.1f, 0.2f, 0.2f, 1.0f } );
 
@@ -27,7 +28,40 @@ void render_callback(
 
 int main(void) {
     E1Window window = e1window_create(1280, 720, "Hello World");
-    E1RenderContext render_ctx = e1rendercontext_create();
+
+    /*
+    E1RenderObject render_ctx = e1renderobject_create(
+        (float32_t[]){
+            0.5f, 0.5f, 0.0f,
+            0.5f, -0.5f, 0.0f,
+            -0.5f, -0.5f, 0.0f,
+            -0.5f, 0.5f, 0.0f,
+        },
+        (uint32_t[]){
+            0, 1, 3,
+            1, 2, 3
+        },
+        4*3,
+        2*3
+    ); */
+
+    /*E1RenderObject render_ctx = e1renderobject_create(
+        (float32_t[]){
+            0.5f, 0.5f, 0.0f,
+            0.5f, -0.5f, 0.0f,
+            -0.5f, -0.5f, 0.0f
+        },
+        NULL,
+        3*3,
+        0
+    );*/
+
+    E1RenderObject render_ctx = e1renderobject_create_triangle(
+        (Vec3(float32_t)){ 0.5f, 0.5f, 0.0f },
+        (Vec3(float32_t)){ 0.5f, -0.5f, 0.0f },
+        (Vec3(float32_t)){ -0.5f, 0.5f, 0.0f }
+    );
+
     window.input_callback = input_callback;
     window.render_callback = render_callback;
 
