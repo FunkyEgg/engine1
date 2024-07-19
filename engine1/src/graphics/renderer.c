@@ -3,20 +3,6 @@
 #include <stdio.h>
 #include <stdbool.h>
 
-// FIXME: Pre compile step for shaders?
-const char* vertex_shader_source = "#version 330 core\n"
-    "layout (location = 0) in vec3 aPos;\n"
-    "void main()\n"
-    "{\n"
-    "   gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
-    "}\0";
-
-const char* frag_shader_source = "#version 330 core\n"
-    "out vec4 frag_color;\n"
-    "void main() {\n"
-    "frag_color = vec4(1.0f, 0.5f, 0.2f, 1.0f);\n"
-    "}\0";
-
 void e1renderobject_render(const E1RenderObject* const render_object) {
     if (render_object == NULL) { return; }
 
@@ -35,7 +21,7 @@ void e1renderobject_render_vector(const Vector* const render_objects) {
     if (render_objects == NULL || render_objects->elems == NULL) { return; }
 
     for (uint32_t i = 0; i < render_objects->size; i++) {
-        E1RenderObject* render_object = render_objects->elems[i];
+        E1RenderObject* render_object = &((E1RenderObject*)render_objects->elems)[i];
         e1renderobject_render(render_object);
     }
 }
@@ -57,69 +43,111 @@ void hack_wireframe() {
 E1RenderObject e1renderobject_create_triangle(
     Vec3(float32_t) p1,
     Vec3(float32_t) p2,
-    Vec3(float32_t) p3
+    Vec3(float32_t) p3,
+    Vector* shaders
 ) {
-    return e1renderobject_create(
+    Vector points = vector_create_from_array(
         (float32_t[]){
             p1.x, p1.y, p1.z,
             p2.x, p2.y, p2.z,
             p3.x, p3.y, p3.z
         },
-        NULL,
         9,
-        0
+        sizeof(float32_t)
     );
+
+    E1RenderObject render_object = e1renderobject_create(
+        &points,
+        NULL,
+        shaders
+    );
+
+    vector_destroy(&points);
+    return render_object;
 }
 
 E1RenderObject e1renderobject_create(
-    float32_t vertices[],
-    uint32_t indices[],
-    uint32_t vertices_length,
-    uint32_t indices_length
+    Vector* vertices,
+    Vector* indices,
+    Vector* shaders
 ) {
     E1RenderObject render_object = { 0, 0, 0, 0, 0 };
 
-    if (vertices == NULL || vertices_length < 9) {
-        fprintf(stderr, "Passed in NULL vertices, vertices_length = %u\n", vertices_length);
+    if (vector_null(vertices) || vertices->size < 9 || !vector_type_is(vertices, sizeof(float32_t))) {
+        fprintf(
+            stderr,
+            "Passed in NULL vertices OR vertices type is wrong, vertices_length = %u\n",
+            vertices->size
+        );
         return render_object;
     }
 
-    uint32_t vertex_shader;
-    {
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-        vertex_shader = glCreateShader(GL_VERTEX_SHADER);
-        glShaderSource(vertex_shader, 1, &vertex_shader_source, NULL);
-        glCompileShader(vertex_shader);
+    if (vector_null(shaders) || shaders->size < 2 || !vector_type_is(shaders, sizeof(E1Shader))) {
+        fprintf(
+            stderr,
+            "Passed in NULL shaders or type wrong or not enough shaders, shader count: %u\n",
+            shaders->size
+        );
+        return render_object;
+    }
 
-        int compile_good;
-        char log[512];
-        glGetShaderiv(vertex_shader, GL_COMPILE_STATUS, &compile_good);
-        if (!compile_good) {
-            glGetShaderInfoLog(vertex_shader, 512, NULL, log);
-            fprintf(stderr, "Vertex shader failed to compile:\n%s\n", log);
+    uint32_t vertex_shader, frag_shader = 0;
+    for (uint32_t i = 0; i < shaders->size; i++) {
+        // If this works I am never touching it again unless it breaks
+        E1Shader* shader = &((E1Shader*)shaders->elems)[i];
 
-            glDeleteShader(vertex_shader);
-            return render_object;
+        switch (shader->shader_type) {
+            case E1_VERTEX_SHADER: {
+                if (vertex_shader != 0) {
+                    fprintf(stderr, "Multiple vertex shaders provided, only using first one\n");
+                    break;
+                }
+
+                vertex_shader = glCreateShader(GL_VERTEX_SHADER);
+                glShaderSource(vertex_shader, 1, &shader->shader_source, NULL);
+                glCompileShader(vertex_shader);
+
+                int compile_good;
+                char log[512];
+                glGetShaderiv(vertex_shader, GL_COMPILE_STATUS, &compile_good);
+                if (!compile_good) {
+                    glGetShaderInfoLog(vertex_shader, 512, NULL, log);
+                    fprintf(stderr, "Vertex shader failed to compile:\n%s\n", log);
+
+                    glDeleteShader(vertex_shader);
+                    return render_object;
+                }
+                break;
+            }
+
+            case E1_FRAGMENT_SHADER: {
+                if (frag_shader != 0) {
+                    fprintf(stderr, "Multiple fragment shaders provided, only using first one\n");
+                    break;
+                }
+
+                frag_shader = glCreateShader(GL_FRAGMENT_SHADER);
+                glShaderSource(frag_shader, 1, &shader->shader_source, NULL);
+                glCompileShader(frag_shader);
+
+                int compile_good;
+                char log[512];
+                glGetShaderiv(frag_shader, GL_COMPILE_STATUS, &compile_good);
+                if (!compile_good) {
+                    glGetShaderInfoLog(frag_shader, 512, NULL, log);
+                    fprintf(stderr, "Fragment shader failed to compile:\n%s\n", log);
+
+                    glDeleteShader(frag_shader);
+                    return render_object;
+                }
+                break;
+            }
         }
     }
 
-    uint32_t frag_shader;
-    {
-        frag_shader = glCreateShader(GL_FRAGMENT_SHADER);
-        glShaderSource(frag_shader, 1, &frag_shader_source, NULL);
-        glCompileShader(frag_shader);
-
-        int compile_good;
-        char log[512];
-        glGetShaderiv(frag_shader, GL_COMPILE_STATUS, &compile_good);
-        if (!compile_good) {
-            glGetShaderInfoLog(frag_shader, 512, NULL, log);
-            fprintf(stderr, "Fragment shader failed to compile:\n%s\n", log);
-
-            glDeleteShader(vertex_shader);
-            glDeleteShader(frag_shader);
-            return render_object;
-        }
+    if (vertex_shader == 0 || frag_shader == 0) {
+        fprintf(stderr, "Vertex/Fragment shader is unbound\n");
+        return render_object;
     }
 
     uint32_t shader_program;
@@ -146,8 +174,13 @@ E1RenderObject e1renderobject_create(
     }
 
     uint32_t VBO, VAO, EBO, count;
-    if (indices != NULL) {
-        count = indices_length;
+    if (!vector_null(indices)) {
+        if (!vector_type_is(indices, sizeof(uint32_t))) {
+            fprintf(stderr, "Indices vector isn't the right type");
+            return render_object;
+        }
+
+        count = indices->size;
 
         glGenVertexArrays(1, &VAO);
         glGenBuffers(1, &VBO);
@@ -156,12 +189,22 @@ E1RenderObject e1renderobject_create(
         glBindVertexArray(VAO); // Bind VAO Then VBO Then EBO Then extras
 
         glBindBuffer(GL_ARRAY_BUFFER, VBO);
-        glBufferData(GL_ARRAY_BUFFER, sizeof(float32_t) * vertices_length, vertices, GL_STATIC_DRAW);
+        glBufferData(
+            GL_ARRAY_BUFFER,
+            sizeof(float32_t) * vertices->size,
+            (float32_t*)vertices->elems,
+            GL_STATIC_DRAW
+        );
 
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(uint32_t) * indices_length, indices, GL_STATIC_DRAW);
+        glBufferData(
+            GL_ELEMENT_ARRAY_BUFFER,
+            sizeof(uint32_t) * indices->size,
+            (uint32_t*)indices->elems,
+            GL_STATIC_DRAW
+        );
 
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float32_t), (void*)0);
         glEnableVertexAttribArray(0);
 
         // The call to glVertexAttribPointer registers the vbo as the current one, so unbinding is safe
@@ -170,7 +213,7 @@ E1RenderObject e1renderobject_create(
     }
     else {
         EBO = 0;
-        count = vertices_length / 3;
+        count = vertices->size / 3;
 
         glGenVertexArrays(1, &VAO);
         glGenBuffers(1, &VBO);
@@ -178,9 +221,14 @@ E1RenderObject e1renderobject_create(
         glBindVertexArray(VAO); // Bind VAO Then VBO Then extras
 
         glBindBuffer(GL_ARRAY_BUFFER, VBO);
-        glBufferData(GL_ARRAY_BUFFER, sizeof(float32_t) * vertices_length, vertices, GL_STATIC_DRAW);
+        glBufferData(
+            GL_ARRAY_BUFFER,
+            sizeof(float32_t) * vertices->size,
+            (uint32_t*)vertices->elems,
+            GL_STATIC_DRAW
+        );
 
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float32_t), (void*)0);
         glEnableVertexAttribArray(0);
 
         // The call to glVertexAttribPointer registers the vbo as the current one, so unbinding is safe
@@ -195,4 +243,21 @@ E1RenderObject e1renderobject_create(
     };
 
     return render_object;
+}
+
+E1Shader e1shader_create(uint8_t shader_type, const char* const source) {
+    if (shader_type != E1_VERTEX_SHADER && shader_type != E1_FRAGMENT_SHADER) {
+        fprintf(stderr, "Unknown shader type\n");
+        return (E1Shader){ 0, 0 };
+    }
+
+    if (source == NULL) {
+        fprintf(stderr, "Empty shader source provided.");
+        return (E1Shader){ 0, 0 };
+    }
+
+    return (E1Shader) {
+        shader_type,
+        source
+    };
 }

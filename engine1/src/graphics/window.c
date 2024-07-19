@@ -1,6 +1,7 @@
 #include <glad/glad.h>
 #include <engine1/graphics/window.h>
 #include <engine1/math/math.h>
+#include <engine1/graphics/renderer.h>
 
 #include <stdio.h>
 #include <stdbool.h>
@@ -71,6 +72,11 @@ void e1window_start_render_loop(
     const E1Window* const window,
     const Vector* const render_objects
 ) {
+    if (!vector_type_is(render_objects, sizeof(E1RenderObject))) {
+        fprintf(stderr, "render_objects does not contain render objects");
+        return;
+    }
+
     // FIXME: This feels very hacky, however it should work as no input should of been polled yet
     // In future this should point the the main egine struct if still using this hack
     glfwSetWindowUserPointer(window->glfw_window, (void*)window);

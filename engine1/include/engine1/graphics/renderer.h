@@ -14,16 +14,26 @@ typedef struct E1RenderObject {
     uint32_t count;
 } E1RenderObject;
 
+typedef struct E1Shader {
+    enum E1ShaderType {
+        E1_VERTEX_SHADER,
+        E1_FRAGMENT_SHADER,
+    } shader_type;
+    const char* const shader_source;
+} E1Shader;
+
+E1Shader e1shader_create(uint8_t shader_type, const char* const source);
+
 E1RenderObject e1renderobject_create(
-    float32_t vertices[],
-    uint32_t indices[],
-    uint32_t vertices_length,
-    uint32_t indices_length
+    Vector* vertices,
+    Vector* indices,
+    Vector* shaders
 );
 E1RenderObject e1renderobject_create_triangle(
     Vec3(float32_t) p1,
     Vec3(float32_t) p2,
-    Vec3(float32_t) p3
+    Vec3(float32_t) p3,
+    Vector* shaders
 );
 void e1renderobject_render(const E1RenderObject* const render_object);
 void e1renderobject_render_vector(const Vector* const render_objects);
