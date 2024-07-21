@@ -2,3 +2,5 @@
 /bin/
 /compile_commands.json
 /.cache
+
+/test_app/src/shaders.h

@@ -12,6 +12,8 @@ project "test_app"
 
     links { "engine1" }
 
+    prebuildcommands { "%{shader_gen} %{prj.location}/assets/shaders %{prj.location}/src/shaders.h" }
+
     filter "configurations:debug"
         defines "DEBUG"
         runtime "Debug"

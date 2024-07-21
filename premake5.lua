@@ -7,6 +7,7 @@ workspace "engine1"
     flags { "MultiProcessorCompile", "NoPCH" }
 
 binbase = "%{wks.location}/bin/%{cfg.buildcfg}-%{cfg.system}"
+shader_gen = "python %{wks.location}/scripts/shader_to_c.py"
 
 group "libs"
     include "engine1/lib/glad"
