@@ -18,3 +18,4 @@ Ensure you have glfw installed system wide
 * [ ] Create a better error management system
 * [ ] Make sure every function that works with pointers has null checks
 ** asserts
+* [ ] Add option for no custom color in render object (It could be hard coded by the shader)

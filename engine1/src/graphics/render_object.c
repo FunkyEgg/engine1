@@ -1,3 +1,4 @@
+#include "engine1/math/math.h"
 #include <engine1/graphics/renderer.h>
 #include <glad/glad.h>
 #include <stdio.h>
@@ -44,15 +45,18 @@ E1RenderObject e1renderobject_create_triangle(
     Vec3(float32_t) p1,
     Vec3(float32_t) p2,
     Vec3(float32_t) p3,
+    Vec3(float32_t) c1,
+    Vec3(float32_t) c2,
+    Vec3(float32_t) c3,
     Vector* shaders
 ) {
     Vector points = vector_create_from_array(
         (float32_t[]){
-            p1.x, p1.y, p1.z,
-            p2.x, p2.y, p2.z,
-            p3.x, p3.y, p3.z
+            p1.x, p1.y, p1.z, c1.x, c1.y, c1.z,
+            p2.x, p2.y, p2.z, c2.x, c2.y, c2.z,
+            p3.x, p3.y, p3.z, c3.x, c3.y, c3.z
         },
-        9,
+        18,
         sizeof(float32_t)
     );
 
@@ -91,7 +95,7 @@ E1RenderObject e1renderobject_create(
         return render_object;
     }
 
-    uint32_t vertex_shader, frag_shader = 0;
+    uint32_t vertex_shader = 0, frag_shader = 0;
     for (uint32_t i = 0; i < shaders->size; i++) {
         // If this works I am never touching it again unless it breaks
         E1Shader* shader = &((E1Shader*)shaders->elems)[i];
@@ -204,8 +208,13 @@ E1RenderObject e1renderobject_create(
             GL_STATIC_DRAW
         );
 
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float32_t), (void*)0);
+        // Pos attrib
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float32_t), (void*)0);
         glEnableVertexAttribArray(0);
+
+        // Color attrib
+        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float32_t), (void*)(3 * sizeof(float32_t)));
+        glEnableVertexAttribArray(1);
 
         // The call to glVertexAttribPointer registers the vbo as the current one, so unbinding is safe
         glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -213,7 +222,7 @@ E1RenderObject e1renderobject_create(
     }
     else {
         EBO = 0;
-        count = vertices->size / 3;
+        count = vertices->size / 6;
 
         glGenVertexArrays(1, &VAO);
         glGenBuffers(1, &VBO);
@@ -224,12 +233,17 @@ E1RenderObject e1renderobject_create(
         glBufferData(
             GL_ARRAY_BUFFER,
             sizeof(float32_t) * vertices->size,
-            (uint32_t*)vertices->elems,
+            (float32_t*)vertices->elems,
             GL_STATIC_DRAW
         );
 
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float32_t), (void*)0);
+        // Pos attrib
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float32_t), (void*)0);
         glEnableVertexAttribArray(0);
+
+        // Color attrib
+        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float32_t), (void*)(3 * sizeof(float32_t)));
+        glEnableVertexAttribArray(1);
 
         // The call to glVertexAttribPointer registers the vbo as the current one, so unbinding is safe
         glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -243,21 +257,4 @@ E1RenderObject e1renderobject_create(
     };
 
     return render_object;
-}
-
-E1Shader e1shader_create(uint8_t shader_type, const char* const source) {
-    if (shader_type != E1_VERTEX_SHADER && shader_type != E1_FRAGMENT_SHADER) {
-        fprintf(stderr, "Unknown shader type\n");
-        return (E1Shader){ 0, 0 };
-    }
-
-    if (source == NULL) {
-        fprintf(stderr, "Empty shader source provided.");
-        return (E1Shader){ 0, 0 };
-    }
-
-    return (E1Shader) {
-        shader_type,
-        source
-    };
 }

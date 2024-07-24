@@ -1,6 +1,8 @@
 #include <engine1/engine1.h>
 #include <stdio.h>
 
+#include "engine1/core/vector.h"
+#include "engine1/math/math.h"
 #include "shaders.h"
 
 // TODO: Bundle window + render_ctx + ... into a engine struct to store and pass things around nicely
@@ -39,6 +41,8 @@ void render_callback(
 }
 
 int main(void) {
+    printf("Make the world your own.\n");
+
     E1Window window = e1window_create(1280, 720, "Hello World");
 
     Vector default_shaders = vector_create_from_array(
@@ -49,7 +53,7 @@ int main(void) {
         2,
         sizeof(E1Shader)
     );
-
+/*
     Vector alt_shaders = vector_create_from_array(
         (E1Shader[]){
             e1shader_create(E1_VERTEX_SHADER, first_vert_shader_source),
@@ -58,27 +62,42 @@ int main(void) {
         2,
         sizeof(E1Shader)
     );
+*/
 
     Vector verticies = vector_create_from_array(
         (float32_t[]){
-            -0.25f, -0.25f, 0.0f,
-            -0.25f, -0.75f, 0.0f,
-            -0.75f, -0.75f, 0.0f
+            -0.75f, -0.75f, 0.0f,      0.09f, 0.01f, 0.65f,
+            -0.25f, -0.75f, 0.0f,      0.12f, 0.89f, 0.35f,
+            -0.75f, -0.25f, 0.0f,      0.89f, 0.35f, 0.71f,
+            -0.25f, -0.25f, 0.0f,      0.75f, 0.21f, 0.55f
         },
-        9,
+        24,
         sizeof(float32_t)
+    );
+
+    Vector indices = vector_create_from_array(
+        (uint32_t[]) {
+            0, 1, 3,
+            0, 2, 3
+        },
+        6,
+        sizeof(uint32_t)
     );
 
     E1RenderObject render_obj_1 = e1renderobject_create(
         &verticies,
-        NULL,
-        &alt_shaders
+        &indices,
+        &default_shaders
     );
 
     E1RenderObject render_obj_2 = e1renderobject_create_triangle(
         (Vec3(float32_t)){ 0.25f, 0.25f, 0.0f },
         (Vec3(float32_t)){ 0.25f, 0.75f, 0.0f },
         (Vec3(float32_t)){ 0.75f, 0.75f, 0.0f },
+
+        (Vec3(float32_t)){ 0.12f, 0.13f, 0.94f },
+        (Vec3(float32_t)){ 0.71f, 0.4f, 0.2f },
+        (Vec3(float32_t)){ 0.1f, 0.72f, 0.1f },
         &default_shaders
     );
 
