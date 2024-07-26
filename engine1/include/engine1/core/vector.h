@@ -22,6 +22,7 @@ void vector_resize_to(Vector* vector, uint32_t size);
 void vector_push_back(Vector* vector, void* elem);
 bool vector_type_is(const Vector* const vector, uint16_t type_size);
 bool vector_null(const Vector* const vector); // Helper method because I'm lazy. Maybe macro?
+bool vector_as_expected(const Vector* const vector, uint16_t type_size);
 
 // TODO: Vector copy
 //       Vector pop

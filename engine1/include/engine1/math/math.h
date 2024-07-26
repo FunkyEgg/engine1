@@ -9,8 +9,6 @@ _Static_assert(sizeof(float32_t) * 8 == 32, "float32_t is not 32 bits");
 typedef double float64_t;
 _Static_assert(sizeof(float64_t) * 8 == 64, "float64_t is not 64 bits");
 
-uint64_t nearest_containing_power_of_2(uint64_t num);
-
 #define Vec2Init(T) typedef struct { T x; T y; } T##_Vec2
 #define Vec2(T) T##_Vec2
 
@@ -52,5 +50,13 @@ Vec4Init(uint32_t);
 Vec4Init(uint64_t);
 Vec4Init(float32_t);
 Vec4Init(float64_t);
+
+#define RATIO_16_9 (Vec2(uint8_t)){ 16, 9 }
+#define RATIO_4_3  (Vec2(uint8_t)){ 4, 3 }
+
+uint64_t nearest_containing_power_of_2(uint64_t num);
+
+Vec3(float32_t) arc_to_glc(Vec3(float32_t) arc, Vec2(uint8_t) ratio);
+Vec3(float32_t) glc_to_arc(Vec3(float32_t) glc, Vec2(uint8_t) ratio);
 
 #endif

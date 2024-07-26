@@ -5,41 +5,42 @@
 #include <engine1/core/vector.h>
 #include <stdint.h>
 
+/* Refactors: 2 */
+
 typedef struct E1RenderObject {
     uint32_t shader_program;
     uint32_t VAO;
     uint32_t VBO;
     uint32_t EBO;
-    // Could be the ebo length or verts length / 3
+    // I've got no clue what this is anymore
     uint32_t count;
 } E1RenderObject;
 
-typedef struct E1Shader {
+typedef struct E1RenderObjectSource {
+    Vector vertices;
+    uint32_t shader_program;
+
+    // Optionals
+    Vector indices;
+    Vector colors;
+} E1RenderObjectSource;
+
+typedef struct E1ShaderSource {
     enum E1ShaderType {
         E1_VERTEX_SHADER,
         E1_FRAGMENT_SHADER,
     } shader_type;
     const char* const shader_source;
-} E1Shader;
+} E1ShaderSource;
 
-E1RenderObject e1renderobject_create(
-    Vector* vertices,
-    Vector* indices,
-    Vector* shaders
-);
-E1RenderObject e1renderobject_create_triangle(
-    Vec3(float32_t) p1,
-    Vec3(float32_t) p2,
-    Vec3(float32_t) p3,
-    Vec3(float32_t) c1,
-    Vec3(float32_t) c2,
-    Vec3(float32_t) c3,
-    Vector* shaders
-);
+
+E1RenderObject e1renderobject_create(E1RenderObjectSource source);
+
 void e1renderobject_render(const E1RenderObject* const render_object);
 void e1renderobject_render_vector(const Vector* const render_objects);
 
-E1Shader e1shader_create(uint8_t shader_type, const char* const source);
+E1ShaderSource e1shader_create(uint8_t shader_type, const char* const source);
+uint32_t e1shadersource_create_program(const Vector* const shader_sources);
 
 void e1renderobject_set_float4(
     const E1RenderObject* const render_object,

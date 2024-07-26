@@ -76,13 +76,13 @@ void vector_resize_to(Vector* vector, uint32_t size) {
 }
 
 void vector_push_back(Vector* vector, void* elem) {
-    if (vector == NULL || vector->elems == NULL) { return; }
+    if (vector == NULL) { return; }
 
     if (vector->size == vector->capacity) {
         vector_resize(vector);
     }
 
-    memcpy((char*)vector->elems + vector->size * vector->elem_size, elem, vector->elem_size);
+    memcpy(vector->elems + vector->size * vector->elem_size, elem, vector->elem_size);
 
     vector->size++;
 }
@@ -98,4 +98,8 @@ bool vector_null(const Vector* const vector) {
         vector->size == 0 ||
         vector->elem_size == 0
     );
+}
+
+bool vector_as_expected(const Vector* const vector, uint16_t type_size) {
+    return !vector_null(vector) && vector_type_is(vector, type_size);
 }

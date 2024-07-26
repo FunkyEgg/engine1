@@ -1,8 +1,12 @@
-#include "engine1/math/math.h"
+#include <engine1/math/math.h>
 #include <engine1/graphics/renderer.h>
+#include <engine1/core/assert.h>
 #include <glad/glad.h>
 #include <stdio.h>
 #include <stdbool.h>
+
+// Forward declare
+static Vector e1shadersource_to_vertices(const E1RenderObjectSource* const source);
 
 void e1renderobject_render(const E1RenderObject* const render_object) {
     if (render_object == NULL) { return; }
@@ -41,150 +45,58 @@ void hack_wireframe() {
     }
 }
 
-E1RenderObject e1renderobject_create_triangle(
-    Vec3(float32_t) p1,
-    Vec3(float32_t) p2,
-    Vec3(float32_t) p3,
-    Vec3(float32_t) c1,
-    Vec3(float32_t) c2,
-    Vec3(float32_t) c3,
-    Vector* shaders
+E1RenderObjectSource e1renderobjectsource_create(
+    const Vector vertices,
+    const uint32_t shader_program
 ) {
-    Vector points = vector_create_from_array(
-        (float32_t[]){
-            p1.x, p1.y, p1.z, c1.x, c1.y, c1.z,
-            p2.x, p2.y, p2.z, c2.x, c2.y, c2.z,
-            p3.x, p3.y, p3.z, c3.x, c3.y, c3.z
-        },
-        18,
-        sizeof(float32_t)
+    ASSERT(shader_program != 0, "Invalid shader program passed");
+    ASSERT(
+        !vector_null(&vertices) && vector_type_is(&vertices, sizeof(float32_t)),
+        "Incorrect vertices passed"
     );
 
-    E1RenderObject render_object = e1renderobject_create(
-        &points,
-        NULL,
-        shaders
-    );
-
-    vector_destroy(&points);
-    return render_object;
+    return (E1RenderObjectSource){
+        .vertices = vertices,
+        .shader_program = shader_program,
+    };
 }
 
-E1RenderObject e1renderobject_create(
-    Vector* vertices,
-    Vector* indices,
-    Vector* shaders
-) {
-    E1RenderObject render_object = { 0, 0, 0, 0, 0 };
 
-    if (vector_null(vertices) || vertices->size < 9 || !vector_type_is(vertices, sizeof(float32_t))) {
-        fprintf(
-            stderr,
-            "Passed in NULL vertices OR vertices type is wrong, vertices_length = %u\n",
-            vertices->size
+E1RenderObject e1renderobject_create(E1RenderObjectSource source) {
+    ASSERT(vector_as_expected(&source.vertices, sizeof(float32_t)), "Can't pass in a null render source");
+    ASSERT(source.shader_program != 0, "No shader program provided");
+
+    // FIXME: Is this bad becaue of making a copy when it may not be needed?
+    Vector vertices = { 0 };
+    bool has_color = !vector_null(&source.colors);
+    if (has_color) {
+        ASSERT(
+            source.vertices.size * 2 == source.vertices.size + source.colors.size,
+            "Some vertices provided are missing a color"
         );
-        return render_object;
+
+        vertices = e1shadersource_to_vertices(&source);
+    }
+    else {
+        vertices = source.vertices;
     }
 
-    if (vector_null(shaders) || shaders->size < 2 || !vector_type_is(shaders, sizeof(E1Shader))) {
-        fprintf(
-            stderr,
-            "Passed in NULL shaders or type wrong or not enough shaders, shader count: %u\n",
-            shaders->size
-        );
-        return render_object;
-    }
-
-    uint32_t vertex_shader = 0, frag_shader = 0;
-    for (uint32_t i = 0; i < shaders->size; i++) {
-        // If this works I am never touching it again unless it breaks
-        E1Shader* shader = &((E1Shader*)shaders->elems)[i];
-
-        switch (shader->shader_type) {
-            case E1_VERTEX_SHADER: {
-                if (vertex_shader != 0) {
-                    fprintf(stderr, "Multiple vertex shaders provided, only using first one\n");
-                    break;
-                }
-
-                vertex_shader = glCreateShader(GL_VERTEX_SHADER);
-                glShaderSource(vertex_shader, 1, &shader->shader_source, NULL);
-                glCompileShader(vertex_shader);
-
-                int compile_good;
-                char log[512];
-                glGetShaderiv(vertex_shader, GL_COMPILE_STATUS, &compile_good);
-                if (!compile_good) {
-                    glGetShaderInfoLog(vertex_shader, 512, NULL, log);
-                    fprintf(stderr, "Vertex shader failed to compile:\n%s\n", log);
-
-                    glDeleteShader(vertex_shader);
-                    return render_object;
-                }
-                break;
-            }
-
-            case E1_FRAGMENT_SHADER: {
-                if (frag_shader != 0) {
-                    fprintf(stderr, "Multiple fragment shaders provided, only using first one\n");
-                    break;
-                }
-
-                frag_shader = glCreateShader(GL_FRAGMENT_SHADER);
-                glShaderSource(frag_shader, 1, &shader->shader_source, NULL);
-                glCompileShader(frag_shader);
-
-                int compile_good;
-                char log[512];
-                glGetShaderiv(frag_shader, GL_COMPILE_STATUS, &compile_good);
-                if (!compile_good) {
-                    glGetShaderInfoLog(frag_shader, 512, NULL, log);
-                    fprintf(stderr, "Fragment shader failed to compile:\n%s\n", log);
-
-                    glDeleteShader(frag_shader);
-                    return render_object;
-                }
-                break;
-            }
+    /*
+    for (int i = 0; i < vertices.size; i++) {
+        float32_t vert = ((float32_t*)(vertices.elems))[i];
+        fprintf(stderr, "%f\n", vert);
+        if (i % 3 == 0) {
         }
     }
+    fprintf(stderr, "Size: %u\n", vertices.size);
+    */
 
-    if (vertex_shader == 0 || frag_shader == 0) {
-        fprintf(stderr, "Vertex/Fragment shader is unbound\n");
-        return render_object;
-    }
-
-    uint32_t shader_program;
-    {
-        shader_program = glCreateProgram();
-        glAttachShader(shader_program, vertex_shader);
-        glAttachShader(shader_program, frag_shader);
-        glLinkProgram(shader_program);
-
-        int compile_good;
-        char log[512];
-        glGetProgramiv(shader_program, GL_LINK_STATUS, &compile_good);
-        if (!compile_good) {
-            glGetProgramInfoLog(shader_program, 512, NULL, log);
-            fprintf(stderr, "Shader program failed to link:\n%s\n", log);
-
-            glDeleteShader(vertex_shader);
-            glDeleteShader(frag_shader);
-            return render_object;
-        }
-
-        glDeleteShader(vertex_shader);
-        glDeleteShader(frag_shader);
-    }
 
     uint32_t VBO, VAO, EBO, count;
-    if (!vector_null(indices)) {
-        if (!vector_type_is(indices, sizeof(uint32_t))) {
-            fprintf(stderr, "Indices vector isn't the right type");
-            return render_object;
-        }
+    if (!vector_null(&source.indices)) {
+        ASSERT(vector_type_is(&source.indices, sizeof(uint32_t)), "Indices vector is the incorrect type");
 
-        count = indices->size;
+        count = source.indices.size;
 
         glGenVertexArrays(1, &VAO);
         glGenBuffers(1, &VBO);
@@ -195,34 +107,22 @@ E1RenderObject e1renderobject_create(
         glBindBuffer(GL_ARRAY_BUFFER, VBO);
         glBufferData(
             GL_ARRAY_BUFFER,
-            sizeof(float32_t) * vertices->size,
-            (float32_t*)vertices->elems,
+            sizeof(float32_t) * vertices.size,
+            (float32_t*)vertices.elems,
             GL_STATIC_DRAW
         );
 
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
         glBufferData(
             GL_ELEMENT_ARRAY_BUFFER,
-            sizeof(uint32_t) * indices->size,
-            (uint32_t*)indices->elems,
+            sizeof(uint32_t) * source.indices.size,
+            (uint32_t*)source.indices.elems,
             GL_STATIC_DRAW
         );
-
-        // Pos attrib
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float32_t), (void*)0);
-        glEnableVertexAttribArray(0);
-
-        // Color attrib
-        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float32_t), (void*)(3 * sizeof(float32_t)));
-        glEnableVertexAttribArray(1);
-
-        // The call to glVertexAttribPointer registers the vbo as the current one, so unbinding is safe
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
-        glBindVertexArray(0); // Unbind VAO to reduce bugs
     }
     else {
         EBO = 0;
-        count = vertices->size / 6;
+        count = source.vertices.size / 3;
 
         glGenVertexArrays(1, &VAO);
         glGenBuffers(1, &VBO);
@@ -232,29 +132,60 @@ E1RenderObject e1renderobject_create(
         glBindBuffer(GL_ARRAY_BUFFER, VBO);
         glBufferData(
             GL_ARRAY_BUFFER,
-            sizeof(float32_t) * vertices->size,
-            (float32_t*)vertices->elems,
+            sizeof(float32_t) * vertices.size,
+            (float32_t*)vertices.elems,
             GL_STATIC_DRAW
         );
+    }
 
+
+    // FIXME: Some multiple true multipler thing, i should understand what this means when it comes timw to do it
+    if (has_color) {
         // Pos attrib
         glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float32_t), (void*)0);
         glEnableVertexAttribArray(0);
 
-        // Color attrib
+        // Color pos
         glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float32_t), (void*)(3 * sizeof(float32_t)));
         glEnableVertexAttribArray(1);
-
-        // The call to glVertexAttribPointer registers the vbo as the current one, so unbinding is safe
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
-        glBindVertexArray(0); // Unbind VAO to reduce bugs
+    }
+    else {
+        // Pos attrib
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float32_t), (void*)0);
+        glEnableVertexAttribArray(0);
     }
 
-    render_object = (E1RenderObject){
-        .shader_program = shader_program,
-        .VAO = VAO, .VBO = VBO, .EBO = EBO,
-        .count = count
-    };
+    // The call to glVertexAttribPointer registers the vbo as the current one, so unbinding is safe
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0); // Unbind VAO to reduce bugs
 
-    return render_object;
+    return (E1RenderObject){
+        .VAO = VAO,
+        .VBO = VBO,
+        .EBO = EBO,
+        .count = count,
+        .shader_program = source.shader_program
+    };
+}
+
+static Vector e1shadersource_to_vertices(const E1RenderObjectSource* const source) {
+    // No need for asserts because the calling function (e1renderobject_create)
+    // assures a safe environment
+
+    bool has_color = !vector_null(&source->colors);
+
+    Vector vertices = vector_create_empty(sizeof(float32_t));
+    for (uint32_t i = 0; i < source->vertices.size; i += 3) {
+        vector_push_back(&vertices, &((float32_t*)source->vertices.elems)[i]); // P1
+        vector_push_back(&vertices, &((float32_t*)source->vertices.elems)[i + 1]); // P2
+        vector_push_back(&vertices, &((float32_t*)source->vertices.elems)[i + 2]); // P3
+
+        if (has_color) {
+            vector_push_back(&vertices, &((float32_t*)source->colors.elems)[i]); // C1
+            vector_push_back(&vertices, &((float32_t*)source->colors.elems)[i + 1]); // C2
+            vector_push_back(&vertices, &((float32_t*)source->colors.elems)[i + 2]); // C3
+        }
+    }
+
+    return vertices;
 }
