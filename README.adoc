@@ -21,3 +21,5 @@ Ensure you have glfw installed system wide
 ** [x] asserts
 * [ ] Add option for no custom color in render object (It could be hard coded by the shader)
 * [ ] Logging
+* [ ] Migrate default shaders to engine build file
+* [ ] Add building glfw fromm source to make windows build easier

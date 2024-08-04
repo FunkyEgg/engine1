@@ -20,13 +20,13 @@ project "engine1"
     }
 
     filter "configurations:debug"
-        defines "DEBUG"
+        defines { "DEBUG", "LOG_LEVEL=4" }
         runtime "Debug"
         symbols "on"
         optimize "off"
 
     filter "configurations:release"
-        defines "RELEASE"
+        defines { "RELEASE", "LOG_LEVEL=2" }
         runtime "Release"
         symbols "off"
         optimize "on"

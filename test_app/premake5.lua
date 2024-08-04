@@ -15,12 +15,12 @@ project "test_app"
     prebuildcommands { "%{shader_gen} %{prj.location}/assets/shaders %{prj.location}/src/shaders.h" }
 
     filter "configurations:debug"
-        defines "DEBUG"
+        defines { "DEBUG", "LOG_LEVEL=4" }
         runtime "Debug"
         symbols "on"
 
     filter "configurations:release"
-        defines "RELEASE"
+        defines { "RELEASE", "LOG_LEVEL=2" }
         runtime "Release"
         symbols "off"
         optimize "on"

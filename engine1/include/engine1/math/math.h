@@ -11,6 +11,7 @@ _Static_assert(sizeof(float64_t) * 8 == 64, "float64_t is not 64 bits");
 
 #define Vec2Init(T) typedef struct { T x; T y; } T##_Vec2
 #define Vec2(T) T##_Vec2
+#define Vec2Unwrap(v) v.x, v.y
 
 Vec2Init(int8_t);
 Vec2Init(int16_t);
@@ -25,6 +26,7 @@ Vec2Init(float64_t);
 
 #define Vec3Init(T) typedef struct { T x; T y; T z; } T##_Vec3
 #define Vec3(T) T##_Vec3
+#define Vec3Unwrap(v) v.x, v.y, v.z
 
 Vec3Init(int8_t);
 Vec3Init(int16_t);
@@ -39,6 +41,7 @@ Vec3Init(float64_t);
 
 #define Vec4Init(T) typedef struct { T x; T y; T z; T w; } T##_Vec4
 #define Vec4(T) T##_Vec4
+#define Vec4Unwrap(v) v.x, v.y, v.z, v.w
 
 Vec4Init(int8_t);
 Vec4Init(int16_t);
@@ -51,8 +54,9 @@ Vec4Init(uint64_t);
 Vec4Init(float32_t);
 Vec4Init(float64_t);
 
-#define RATIO_16_9 (Vec2(uint8_t)){ 16, 9 }
-#define RATIO_4_3  (Vec2(uint8_t)){ 4, 3 }
+#define COORD(x, y, z) (Vec3(float32_t)){ x, y, z }
+#define RATIO_16_9     (Vec2(uint8_t)){ 16, 9 }
+#define RATIO_4_3      (Vec2(uint8_t)){ 4, 3 }
 
 uint64_t nearest_containing_power_of_2(uint64_t num);
 

@@ -1,6 +1,7 @@
 #include <engine1/engine1.h>
 #include <stdio.h>
 
+#include "engine1/core/log.h"
 #include "shaders.h"
 
 // TODO: Bundle window + render_ctx + ... into a engine struct to store and pass things around nicely
@@ -40,7 +41,15 @@ void render_callback(
 
 int main(void) {
     printf("Make the world your own.\n");
-    E1Window window = e1window_create(1280, 720, "Hello World");
+
+    LOG_TRACE("Good Luck");
+    LOG_DEBUG("C");
+    LOG_INFO("O");
+    LOG_WARN("L");
+    LOG_ERROR("O");
+    LOG_CRIT("R");
+
+    E1Window window = e1window_create(1280, 720, "world");
 
     Vector default_shaders = vector_create_from_array((E1ShaderSource[]){
             e1shader_create(E1_VERTEX_SHADER, first_vert_shader_source),
@@ -89,9 +98,34 @@ int main(void) {
         ),
     });
 
+
+    E1RenderObject object_3 = e1renderobject_create((E1RenderObjectSource){
+        .shader_program = e1shadersource_create_program(&default_shaders),
+        .vertices = vector_create_from_array(
+            (float32_t[]){
+                Vec3Unwrap(arc_to_glc(COORD(-1, -1, 0), RATIO_16_9)),
+                Vec3Unwrap(arc_to_glc(COORD(-1, 1, 0), RATIO_16_9)),
+                Vec3Unwrap(arc_to_glc(COORD(1, -1, 0), RATIO_16_9)),
+                Vec3Unwrap(arc_to_glc(COORD(1, 1, 0), RATIO_16_9)),
+            }, 12, sizeof(float32_t)
+        ),
+        .colors = vector_create_from_array((float32_t[]){
+                0.09f, 0.01f, 0.65f,
+                0.12f, 0.89f, 0.35f,
+                0.89f, 0.35f, 0.71f,
+                0.67f, 0.12f, 0.45f
+            }, 12, sizeof(float32_t)
+        ),
+        .indices = vector_create_from_array((uint32_t[]){
+                0, 1, 3,
+                0, 2, 3
+            }, 6, sizeof(uint32_t)
+        )
+    });
+
     Vector render_objects = vector_create_from_array((E1RenderObject[]){
-            object_1, object_2
-        }, 2, sizeof(E1RenderObject)
+            object_1, object_2, object_3
+        }, 3, sizeof(E1RenderObject)
     );
 
     window.input_callback = input_callback;
