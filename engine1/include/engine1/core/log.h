@@ -26,7 +26,7 @@ void log_out(const char* const message, uint8_t log_level);
 #endif
 
 #if LOG_LEVEL >= 4
-#define LOG_DEBUG(msg) log_out("(TRACE){"LOG_CONTEXT"}:" msg, E1_LOG_DBG)
+#define LOG_DEBUG(msg) log_out("(DEBUG){"LOG_CONTEXT"}:" msg, E1_LOG_DBG)
 #else
 #define LOG_DEBUG(msg)
 #endif

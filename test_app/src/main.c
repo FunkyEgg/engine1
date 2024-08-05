@@ -1,7 +1,7 @@
+#define LOG_CONTEXT "test_app"
 #include <engine1/engine1.h>
 #include <stdio.h>
 
-#include "engine1/core/log.h"
 #include "shaders.h"
 
 // TODO: Bundle window + render_ctx + ... into a engine struct to store and pass things around nicely
@@ -103,10 +103,10 @@ int main(void) {
         .shader_program = e1shadersource_create_program(&default_shaders),
         .vertices = vector_create_from_array(
             (float32_t[]){
-                Vec3Unwrap(arc_to_glc(COORD(-1, -1, 0), RATIO_16_9)),
-                Vec3Unwrap(arc_to_glc(COORD(-1, 1, 0), RATIO_16_9)),
-                Vec3Unwrap(arc_to_glc(COORD(1, -1, 0), RATIO_16_9)),
-                Vec3Unwrap(arc_to_glc(COORD(1, 1, 0), RATIO_16_9)),
+                Vec3Unwrap(arc_to_glc(COORD(8, 5, 0), RATIO_16_9)),
+                Vec3Unwrap(arc_to_glc(COORD(8, 6, 0), RATIO_16_9)),
+                Vec3Unwrap(arc_to_glc(COORD(9, 5, 0), RATIO_16_9)),
+                Vec3Unwrap(arc_to_glc(COORD(9, 6, 0), RATIO_16_9)),
             }, 12, sizeof(float32_t)
         ),
         .colors = vector_create_from_array((float32_t[]){

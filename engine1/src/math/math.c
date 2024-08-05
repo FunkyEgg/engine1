@@ -13,16 +13,16 @@ uint64_t nearest_containing_power_of_2(uint64_t num) {
 
 Vec3(float32_t) arc_to_glc(Vec3(float32_t) arc, Vec2(uint8_t) ratio) {
     return (Vec3(float32_t)){
-        .x = ( arc.x / ( ratio.x / 2.0f ) ) - ( ratio.x / 2.0f ),
-        .y = ( arc.y / ( ratio.y / 2.0f ) ) - ( ratio.y / 2.0f ),
+        .x = ( ( ( arc.x / ratio.x ) * 2 ) - 1 ),
+        .y = ( ( ( arc.y / ratio.y ) * 2 ) - 1 ),
         .z = arc.z
     };
 }
 
 Vec3(float32_t) glc_to_arc(Vec3(float32_t) glc, Vec2(uint8_t) ratio) {
     return (Vec3(float32_t)){
-        .x = ( ( ( glc.x + 1 ) * ratio.x ) - ratio.x ),
-        .y = ( ( ( glc.y + 1 ) * ratio.y ) - ratio.y ),
+        .x = ( ( ( glc.x + 1 ) / 2 ) * ratio.x ),
+        .y = ( ( ( glc.y + 1 ) / 2 ) * ratio.y ),
         .z = glc.z
     };
 }
