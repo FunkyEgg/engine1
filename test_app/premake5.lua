@@ -10,6 +10,10 @@ project "test_app"
     files { "src/**.c", "src/**.h" }
     includedirs { "src/", "%{wks.location}/engine1/include" }
 
+    -- FIXME: Remove this when fixed
+    includedirs { "%{wks.location}/engine1/lib/glfw3/include" }
+    links { "m" }
+
     links { "engine1" }
 
     prebuildcommands { "%{shader_gen} %{prj.location}/assets/shaders %{prj.location}/src/shaders.h" }

@@ -93,7 +93,7 @@ int main(void) {
         .colors = vector_create_from_array((float32_t[]){
                 1.0f, 0.0f, 0.0f,
                 0.0f, 1.0f, 0.0f,
-                0.0f, 0.0f, 0.1f
+                0.0f, 0.0f, 1.0f
             }, 9, sizeof(float32_t)
         ),
     });

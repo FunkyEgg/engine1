@@ -11,6 +11,7 @@ shader_gen = "python3 %{wks.location}/scripts/shader_to_c.py"
 
 group "libs"
     include "engine1/lib/glad"
+    include "engine1/lib/glfw3"
 group ""
 
 group "engine"

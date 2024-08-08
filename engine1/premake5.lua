@@ -10,12 +10,12 @@ project "engine1"
     files { "src/**.c", "include/**.h" }
     includedirs {
         "include/",
-        "%{wks.location}/engine1/lib/glad/include"
+        "%{wks.location}/engine1/lib/glad/include",
+        "%{wks.location}/engine1/lib/glfw3/include"
     }
 
-    defines {}
     links {
-        "glfw",
+        "glfw3",
         "glad"
     }
 
