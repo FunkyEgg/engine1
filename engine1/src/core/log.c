@@ -13,7 +13,7 @@
 void log_out(const char* const message, const uint8_t log_level) {
     ASSERTF(log_level <= E1_LOG_TRACE, "Log level exceded 5, given: %u", log_level);
 
-#ifdef E1_PLAT_LINUX
+    // TODO: On windows ensure ansii color support is enabled
     switch (log_level) {
         case E1_LOG_CRIT:
             fprintf(stderr, ANSII_DRED "%s\n" ANSII_RESET, message);
@@ -43,8 +43,4 @@ void log_out(const char* const message, const uint8_t log_level) {
             fprintf(stderr, "If this prints something has gone very wrong");
             break;
     }
-#elif defined (E1_PLAT_WINDOWS)
-    // TODO: Logging colors for windows
-    fprintf(stderr, "%s\n", message);
-#endif
 }
