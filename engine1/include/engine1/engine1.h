@@ -2,9 +2,6 @@
 #define ENGINE1_ENGINE1_H
 
 #include "platform.h"
-#ifdef E1_PLAT_WINDOWS
-#warning "Windows may not work"
-#endif
 
 #include "math/math.h"
 

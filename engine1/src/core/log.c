@@ -44,7 +44,7 @@ void log_out(const char* const message, const uint8_t log_level) {
             break;
     }
 #elif defined (E1_PLAT_WINDOWS)
-// TODO: Logging for windows
-#error "No logging for windows yet"
+    // TODO: Logging colors for windows
+    fprintf(stderr, "%s\n", message);
 #endif
 }

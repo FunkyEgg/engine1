@@ -82,7 +82,7 @@ void vector_push_back(Vector* vector, void* elem) {
         vector_resize(vector);
     }
 
-    memcpy(vector->elems + vector->size * vector->elem_size, elem, vector->elem_size);
+    memcpy((char*)vector->elems + vector->size * vector->elem_size, elem, vector->elem_size);
 
     vector->size++;
 }

@@ -1,8 +1,9 @@
 project "engine1"
-    kind "SharedLib"
+    kind "StaticLib"
     language "C"
     cdialect "C11"
     staticruntime "on"
+    pic "on"
 
     targetdir (binbase .. "/%{prj.name}")
     objdir (binbase .. "/%{prj.name}/obj")

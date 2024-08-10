@@ -2,5 +2,8 @@
 /bin/
 /compile_commands.json
 /.cache
+/**/*.vcxproj*
+/.vs
+/*.sln
 
 /test_app/src/shaders.h
