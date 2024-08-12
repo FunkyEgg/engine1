@@ -20,6 +20,9 @@ project "engine1"
         "glad"
     }
 
+    filter "system:linux"
+        kind "SharedLib"
+
     filter "configurations:debug"
         defines { "DEBUG", "LOG_LEVEL=4" }
         runtime "Debug"

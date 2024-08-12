@@ -3,8 +3,7 @@ My first attempt at making a non-serious game engine +
 If there are any issues with building/running please let me know
 
 == Support
-Currently I have only tested linux, so I got no clue about windows :) +
-When I have the time to fix up my window dev environment I will test it out to ensure it works.
+Windows and linux should both work
 
 == Building
 Ensure you have glfw installed system wide
@@ -22,4 +21,5 @@ Ensure you have glfw installed system wide
 * [ ] Add option for no custom color in render object (It could be hard coded by the shader)
 * [ ] Logging
 * [ ] Migrate default shaders to engine build file
-* [ ] Add building glfw fromm source to make windows build easier
+* [ ] Add postbuild step for linux so that engine1 can be compiled staticly
+** This can be done with ar
