@@ -20,10 +20,10 @@ if __name__ == "__main__":
             for file_name in files:
                 file_full_path = os.path.join(path, file_name)
 
-                with open(file_full_path) as file:
+                with open(file_full_path, "r") as file:
                     file_name_clean = re.sub(r"[-.]", "_", file_name)
 
-                    output = f"static const char* {file_name_clean}_shader_source = \\"
+                    output = f"const char* {file_name_clean}_shader_source = \\"
                     content_lines = [line.strip() for line in file.readlines()]
 
                     for line in content_lines:
@@ -32,7 +32,13 @@ if __name__ == "__main__":
 
                         output += f"\n\t\"{line}\\n\""
                     output += ";\n"
-                    output_file_contents += f"{output}"
+                    output_file_contents += output
 
     with open(sys.argv[out_file], "w") as file:
-        file.write(output_file_contents)
+        safe_name = re.sub(r"[-.]", "_", os.path.basename(file.name)).upper()
+        file.write((
+            f"#ifndef SHADERGEN_{safe_name}\n"
+            f"#define SHADERGEN_{safe_name}\n"
+            f"{output_file_contents}"
+            f"#endif\n"
+        ))

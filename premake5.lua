@@ -8,6 +8,7 @@ workspace "engine1"
 
 binbase = "%{wks.location}/bin/%{cfg.buildcfg}-%{cfg.system}"
 shader_gen = "python3 %{wks.location}/scripts/shader_to_c.py"
+texture_gen = "python3 %{wks.location}/scripts/texture_to_c.py"
 
 group "libs"
     include "engine1/lib/glad"

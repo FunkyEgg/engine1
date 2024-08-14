@@ -23,3 +23,5 @@ Ensure you have glfw installed system wide
 * [ ] Migrate default shaders to engine build file
 * [ ] Add postbuild step for linux so that engine1 can be compiled staticly
 ** This can be done with ar
+* [ ] Roll my own png reading library
+* [ ] Move shaders that should be a part of engine to the engine

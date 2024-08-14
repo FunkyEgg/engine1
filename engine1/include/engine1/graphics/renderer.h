@@ -33,15 +33,17 @@ typedef struct E1ShaderSource {
     const char* const shader_source;
 } E1ShaderSource;
 
+typedef struct E1TextureSource {
+    Vector texture_coords;
+    const char* const texture_source;
+} E1TextureSource;
 
 E1RenderObject e1renderobject_create(E1RenderObjectSource source);
-
 void e1renderobject_render(const E1RenderObject* const render_object);
 void e1renderobject_render_vector(const Vector* const render_objects);
 
 E1ShaderSource e1shader_create(uint8_t shader_type, const char* const source);
 uint32_t e1shadersource_create_program(const Vector* const shader_sources);
-
 void e1renderobject_set_float4(
     const E1RenderObject* const render_object,
     const char* const name,

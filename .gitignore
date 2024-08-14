@@ -7,3 +7,4 @@
 /*.sln
 
 /test_app/src/shaders.h
+/engine1/include/engine1/graphics/extra_textures.h

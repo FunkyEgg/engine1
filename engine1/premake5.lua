@@ -20,6 +20,10 @@ project "engine1"
         "glad"
     }
 
+    prebuildcommands {
+        "%{texture_gen} %{prj.location}/assets/textures %{prj.location}/include/engine1/graphics/extra_textures.h"
+    }
+
     filter "system:linux"
         kind "SharedLib"
 
